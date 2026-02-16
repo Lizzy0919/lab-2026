@@ -1,8 +1,7 @@
-
 import React, { useState } from 'react';
 import { AppState } from './types';
 import { LAB_QUOTES, VerificationQuote } from './constants';
-import { generatePersonalizedBlessing } from './services/gemini';
+// ⚠️ 修复 1：删除了不稳定的后端 gemini API 导入
 import VerificationPortal from './components/VerificationPortal';
 import Fireworks from './components/Fireworks';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -34,12 +33,31 @@ const App: React.FC = () => {
     }
   };
 
-  const revealBlessing = async () => {
+  // 🔥 修复 2：彻底重写祝福逻辑，改为本地纯静态随机，快准稳！
+  const revealBlessing = () => {
     setLoading(true);
     setState(AppState.REVEAL);
-    const result = await generatePersonalizedBlessing(userName);
-    setBlessing(result);
-    setLoading(false);
+
+    // 模拟 1.5 秒的加载动画，保留高级的过渡仪式感
+    setTimeout(() => {
+      const staticBlessings = [
+        { icon: "💰", title: "暴富签", content: "新的一年科研经费拿到手软，奖学金统统拿下，早日实现财务自由！" },
+        { icon: "🎓", title: "顶刊签", content: "顶级期刊随便投！你画的科研插图如同艺术品般完美，文章学术表达犹如神助！" },
+        { icon: "🌙", title: "神仙作息签", content: "告别通宵肝 DDL！祝你完美达成凌晨 1 点睡、早晨 9 点起的神仙作息，精神饱满每一天！" },
+        { icon: "🎮", title: "峡谷签", content: "科研累了打打游戏，手感火热把把超神，像 T1 教练一样运筹帷幄，轻松上大分！" },
+        { icon: "🧪", title: "锦鲤签", content: "不管是梳理代谢通路还是搞碱基编辑，实验一次就 Success，P值永远小于0.05！" }
+      ];
+      
+      // 随机抽取
+      const randomIndex = Math.floor(Math.random() * staticBlessings.length);
+      const randomBlessing = staticBlessings[randomIndex];
+      
+      // 拼接用户输入的姓名，增加专属感
+      randomBlessing.content = `${userName}，${randomBlessing.content}`;
+
+      setBlessing(randomBlessing);
+      setLoading(false);
+    }, 1500);
   };
 
   const handleRestart = () => {
@@ -102,6 +120,7 @@ const App: React.FC = () => {
             className="w-full fade-in"
           >
             <VerificationPortal 
+              key={activeQuote.answer} // 🔥 修复 3：添加 key 强制刷新组件，确保重玩时题目更新
               quote={activeQuote} 
               onVerify={handleVerify}
               isError={isError}
@@ -134,7 +153,7 @@ const App: React.FC = () => {
                   <p className="greet-text">{blessing?.content || '祝你新年大吉，科研顺利！'}</p>
                   <button 
                     onClick={handleRestart}
-                    className="secondary-btn"
+                    className="secondary-btn w-full bg-transparent text-[#666] border border-[#ddd] p-3 rounded-lg mt-4"
                   >
                     再抽一签
                   </button>
